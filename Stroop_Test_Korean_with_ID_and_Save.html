@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stroop Test (Korean)</title>
+    <script src="https://unpkg.com/jspsych@7.3.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.1"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.0.1"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@1.0.2"></script>
+    <link href="https://unpkg.com/jspsych@7.3.0/css/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych({
+      on_finish: () => {
+        jsPsych.data.get().localSave('csv', 'stroop_results.csv');
+        jsPsych.data.displayData();
+      }
+    });
+
+    const timeline = [];
+
+    // 이름 입력
+    timeline.push({
+      type: jsPsychSurveyText,
+      preamble: '<h3>실험에 참여해 주셔서 감사합니다.</h3><p>먼저 본인의 이름 또는 학번을 입력해 주세요.</p>',
+      questions: [
+        {prompt: '이름 또는 학번:', name: 'participant_id', required: true}
+      ],
+      on_finish: data => {
+        const responses = JSON.parse(data.responses);
+        jsPsych.data.addProperties({
+          participant_id: responses.participant_id
+        });
+      }
+    });
+
+    // Stroop 자극 배열
+    const stroop_trials = [
+      {word: "빨강", color: "red"},
+      {word: "초록", color: "green"},
+      {word: "파랑", color: "blue"},
+      {word: "노랑", color: "yellow"},
+      {word: "초록", color: "red"},
+      {word: "빨강", color: "blue"},
+      {word: "노랑", color: "green"},
+      {word: "파랑", color: "yellow"}
+    ];
+
+    // Stroop 테스트 구성
+    stroop_trials.forEach(trial => {
+      timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<p style="color:${trial.color}; font-size:48px;">${trial.word}</p>`,
+        choices: ['r','g','b','y'],
+        data: {
+          correct_response: trial.color[0],
+          color_shown: trial.color,
+          word_shown: trial.word
+        },
+        on_finish: data => {
+          data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+        }
+      });
+    });
+
+    jsPsych.run(timeline);
+  </script>
+</html>
