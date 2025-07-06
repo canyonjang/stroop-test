@@ -1,1 +1,3 @@
-/* jsPsych 6.3.1 styles */
+
+/* Minimal jsPsych CSS for layout */
+.jspsych-display-element { font-family: sans-serif; text-align: center; }
