@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <title>Stroop Test (Local jsPsych v6)</title>
+    <script src="jspsych.js"></script>
+    <script src="plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="plugins/jspsych-survey-text.js"></script>
+    <link href="jspsych.css" rel="stylesheet" />
+    <style>
+      body { font-family: sans-serif; }
+    </style>
+  </head>
+  <body></body>
+
+  <script>
+    var timeline = [];
+
+    var welcome = {
+      type: 'survey-text',
+      preamble: '<h3>Stroop 실험에 오신 것을 환영합니다!</h3><p>이름 또는 학번을 입력하세요.</p>',
+      questions: [{prompt: "이름 또는 학번:", name: 'participant_id'}],
+      on_finish: function(data){
+        var id = JSON.parse(data.responses).participant_id;
+        jsPsych.data.addProperties({participant_id: id});
+      }
+    };
+    timeline.push(welcome);
+
+    var stroop_stimuli = [
+      {word: "빨강", color: "red"},
+      {word: "초록", color: "green"},
+      {word: "파랑", color: "blue"},
+      {word: "노랑", color: "yellow"},
+      {word: "초록", color: "red"},
+      {word: "빨강", color: "blue"},
+      {word: "노랑", color: "green"},
+      {word: "파랑", color: "yellow"}
+    ];
+
+    for (var i = 0; i < stroop_stimuli.length; i++) {
+      var trial = {
+        type: 'html-keyboard-response',
+        stimulus: '<p style="color:' + stroop_stimuli[i].color + '; font-size: 48px;">' + stroop_stimuli[i].word + '</p>',
+        choices: ['r', 'g', 'b', 'y'],
+        data: {
+          word_shown: stroop_stimuli[i].word,
+          color_shown: stroop_stimuli[i].color,
+          correct_response: stroop_stimuli[i].color[0]
+        },
+        on_finish: function(data){
+          data.correct = data.response === data.correct_response;
+        }
+      };
+      timeline.push(trial);
+    }
+
+    jsPsych.init({
+      timeline: timeline,
+      on_finish: function() {
+        jsPsych.data.get().localSave('csv', 'stroop_results.csv');
+        jsPsych.data.displayData();
+      }
+    });
+  </script>
+</html>
